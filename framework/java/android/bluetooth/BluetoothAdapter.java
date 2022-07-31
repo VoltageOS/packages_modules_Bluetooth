@@ -19,6 +19,7 @@ package android.bluetooth;
 
 import static java.util.Objects.requireNonNull;
 
+import android.Manifest;
 import android.annotation.BroadcastBehavior;
 import android.annotation.CallbackExecutor;
 import android.annotation.FlaggedApi;
@@ -32,6 +33,8 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.app.PendingIntent;
+import android.app.compat.gms.GmsCompat;
+import android.app.compat.gms.GmsModuleHooks;
 import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
@@ -1379,6 +1382,14 @@ public final class BluetoothAdapter {
         if (!isBleScanAlwaysAvailable()) {
             return false;
         }
+
+        if (GmsCompat.isEnabled()) {
+            Boolean res = GmsModuleHooks.enableBluetoothAdapter();
+            if (res != null) {
+                return res.booleanValue();
+            }
+        }
+
         try {
             return mManagerService.enableBle(mAttributionSource, mToken);
         } catch (RemoteException e) {
@@ -1440,6 +1451,13 @@ public final class BluetoothAdapter {
 
     /** Fetch the current bluetooth state. If the service is down, return OFF. */
     private @InternalAdapterState int getStateInternal() {
+        if (GmsCompat.isEnabled()) {
+            if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)) {
+                // called by both getState() and getLeState()
+                return BluetoothAdapter.STATE_OFF;
+            }
+        }
+
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
@@ -1570,6 +1588,14 @@ public final class BluetoothAdapter {
             }
             return true;
         }
+
+        if (GmsCompat.isEnabled()) {
+            Boolean res = GmsModuleHooks.enableBluetoothAdapter();
+            if (res != null) {
+                return res.booleanValue();
+            }
+        }
+
         try {
             return mManagerService.enable(mAttributionSource);
         } catch (RemoteException e) {
@@ -1890,6 +1916,19 @@ public final class BluetoothAdapter {
                 && mode != SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             throw new IllegalArgumentException("Invalid scan mode param value");
         }
+
+        if (GmsCompat.isEnabled()) {
+            boolean proceed = GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)
+                    && GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED);
+
+            if (!proceed) {
+                if (mode != SCAN_MODE_NONE) {
+                    GmsModuleHooks.makeBluetoothAdapterDiscoverable();
+                }
+                return BluetoothStatusCodes.SUCCESS;
+            }
+        }
+
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
