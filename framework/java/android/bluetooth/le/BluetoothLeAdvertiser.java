@@ -29,6 +29,7 @@ import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattServer;
@@ -562,6 +563,13 @@ public final class BluetoothLeAdvertiser {
             return;
         }
 
+        if (GmsCompat.isEnabled()) {
+            if (gattServer != null && !GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)) {
+                Log.d("GmsCompat", "ignored BluetoothGattServer", new Throwable());
+                gattServer = null;
+            }
+        }
+
         boolean isConnectable = parameters.isConnectable();
         boolean isDiscoverable = parameters.isDiscoverable();
         boolean hasFlags = isConnectable && isDiscoverable;
@@ -655,7 +663,7 @@ public final class BluetoothLeAdvertiser {
             return;
         } catch (SecurityException e) {
             mCallbackWrappers.remove(callback);
-            throw e;
+            GmsCompat.catchOrRethrow(e);
         }
     }
 

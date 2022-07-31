@@ -38,6 +38,7 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.app.compat.CompatChanges;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
@@ -1758,7 +1759,12 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED})
     public @Nullable String getIdentityAddress() {
-        return callServiceIfEnabled(s -> s.getIdentityAddress(mAddress, mAttributionSource), null);
+        try {
+            return callServiceIfEnabled(s -> s.getIdentityAddress(mAddress, mAttributionSource), null);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return null;
+        }
     }
 
     /**
@@ -2532,8 +2538,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresPermission(allOf = {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED})
     public boolean setPairingConfirmation(boolean confirm) {
         if (DBG) log("setPairingConfirmation()");
-        return callServiceIfEnabled(
-                s -> s.setPairingConfirmation(this, confirm, mAttributionSource), false);
+        try {
+            return callServiceIfEnabled(
+                    s -> s.setPairingConfirmation(this, confirm, mAttributionSource), false);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return false;
+        }
     }
 
     boolean isBluetoothEnabled() {
@@ -2584,8 +2595,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresPermission(allOf = {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED})
     public boolean setSilenceMode(boolean silence) {
         if (DBG) log("setSilenceMode()");
-        return callServiceIfEnabled(
-                s -> s.setSilenceMode(this, silence, mAttributionSource), false);
+        try {
+            return callServiceIfEnabled(
+                    s -> s.setSilenceMode(this, silence, mAttributionSource), false);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return false;
+        }
     }
 
     /**
@@ -3334,8 +3350,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             throw new IllegalArgumentException(
                     "value length is " + value.length + ", should not over " + METADATA_MAX_LENGTH);
         }
-        return callServiceIfEnabled(
-                s -> s.setMetadata(this, key, value, mAttributionSource), false);
+        try {
+            return callServiceIfEnabled(
+                    s -> s.setMetadata(this, key, value, mAttributionSource), false);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return false;
+        }
     }
 
     /**
@@ -3349,7 +3370,12 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED})
     public @Nullable byte[] getMetadata(@MetadataKey int key) {
-        return callServiceIfEnabled(s -> s.getMetadata(this, key, mAttributionSource), null);
+        try {
+            return callServiceIfEnabled(s -> s.getMetadata(this, key, mAttributionSource), null);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return null;
+        }
     }
 
     /**
