@@ -809,7 +809,7 @@ struct Controller::impl {
       OP_CODE_MAPPING(LE_GENERATE_DHKEY_COMMAND)
       OP_CODE_MAPPING(LE_MODIFY_SLEEP_CLOCK_ACCURACY)
 #ifndef DISABLE_LE_READ_BUFFER_SIZE_V2
-      OP_CODE_MAPPING(LE_READ_BUFFER_SIZE_V2)
+    // OP_CODE_MAPPING(LE_READ_BUFFER_SIZE_V2)
 #endif
       OP_CODE_MAPPING(LE_READ_ISO_TX_SYNC)
       OP_CODE_MAPPING(LE_SET_CIG_PARAMETERS)
@@ -826,7 +826,7 @@ struct Controller::impl {
       OP_CODE_MAPPING(LE_SETUP_ISO_DATA_PATH)
       OP_CODE_MAPPING(LE_REMOVE_ISO_DATA_PATH)
 #ifndef DISABLE_LE_SET_HOST_FEATURE
-      OP_CODE_MAPPING(LE_SET_HOST_FEATURE)
+      // OP_CODE_MAPPING(LE_SET_HOST_FEATURE)
 #endif
       OP_CODE_MAPPING(LE_READ_ISO_LINK_QUALITY)
       OP_CODE_MAPPING(LE_ENHANCED_READ_TRANSMIT_POWER_LEVEL)
@@ -844,6 +844,13 @@ struct Controller::impl {
       OP_CODE_MAPPING(LE_SET_DEFAULT_SUBRATE)
       OP_CODE_MAPPING(LE_SUBRATE_REQUEST)
       OP_CODE_MAPPING(SET_MIN_ENCRYPTION_KEY_SIZE)
+
+      case OpCode::LE_READ_BUFFER_SIZE_V2:
+        LOG_DEBUG("unsupported command opcode: 0x%04x", (uint16_t)OpCode::LE_READ_BUFFER_SIZE_V2);
+        return false;
+      case OpCode::LE_SET_HOST_FEATURE:
+        LOG_DEBUG("unsupported command opcode: 0x%04x", (uint16_t)OpCode::LE_SET_HOST_FEATURE);
+        return false;
 
 #ifdef DISABLE_LE_READ_BUFFER_SIZE_V2
       case OpCode::LE_READ_BUFFER_SIZE_V2:
@@ -1300,3 +1307,4 @@ DumpsysDataFinisher Controller::GetDumpsysData(flatbuffers::FlatBufferBuilder* f
 
 }  // namespace hci
 }  // namespace bluetooth
+
