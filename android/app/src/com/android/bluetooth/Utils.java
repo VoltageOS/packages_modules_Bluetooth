@@ -25,6 +25,7 @@ import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.companion.AssociationInfo;
@@ -32,6 +33,7 @@ import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Looper;
@@ -286,6 +288,15 @@ public final class Utils {
     /** Converts {@code milliseconds} to unit. Each unit is 0.625 millisecond. */
     public static int millsToUnit(int milliseconds) {
         return (int) (TimeUnit.MILLISECONDS.toMicros(milliseconds) / MICROS_PER_UNIT);
+    }
+
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    public static void enforceBluetoothPrivilegedAndroidAutoOrThrow(Context context, SecurityException e) {
+        String perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO;
+        if (context.checkCallingPermission(perm) == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        throw e;
     }
 
     /**
