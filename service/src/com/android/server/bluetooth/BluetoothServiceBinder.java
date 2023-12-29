@@ -38,6 +38,8 @@ import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -108,7 +110,8 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
                         mPermissionManager,
                         "enable",
                         true);
-        if (!errorMsg.isEmpty()) {
+        /** @see android.bluetooth.BluetoothAdapter#enable */
+        if (!errorMsg.isEmpty() && !isPrivilegedAndroidAuto(Binder.getCallingPid(), Binder.getCallingUid())) {
             Log.d(TAG, "enable(): FAILED: " + errorMsg);
             return false;
         }
@@ -158,7 +161,8 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
                         mPermissionManager,
                         "disable",
                         true);
-        if (!errorMsg.isEmpty()) {
+        /** @see android.bluetooth.BluetoothAdapter#disable */
+        if (!errorMsg.isEmpty() && !isPrivilegedAndroidAuto(Binder.getCallingPid(), Binder.getCallingUid())) {
             Log.d(TAG, "disable(): FAILED: " + errorMsg);
             return false;
         }
@@ -355,5 +359,10 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
         }
 
         mBluetoothManagerService.dump(fd, writer, args);
+    }
+
+    private boolean isPrivilegedAndroidAuto(int pid, int uid) {
+        String perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO;
+        return mContext.checkPermission(perm, pid, uid) == PackageManager.PERMISSION_GRANTED;
     }
 }

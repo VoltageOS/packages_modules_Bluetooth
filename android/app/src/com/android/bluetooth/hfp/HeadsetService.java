@@ -20,6 +20,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.MODIFY_PHONE_STATE;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermissionOrAndroidAuto;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
 import static java.util.Objects.requireNonNull;
@@ -581,7 +582,8 @@ public class HeadsetService extends ProfileService {
                 return false;
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            /** @see android.bluetooth.BluetoothHeadset#setConnectionPolicy */
+            enforceBluetoothPrivilegedPermissionOrAndroidAuto(service);
             return service.setConnectionPolicy(device, connectionPolicy);
         }
 
