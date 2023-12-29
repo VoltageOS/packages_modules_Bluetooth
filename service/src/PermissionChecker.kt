@@ -74,6 +74,14 @@ internal class PermissionChecker(
     class BluetoothPermissionException(message: String? = null, cause: Throwable? = null) :
         Exception(message, cause)
 
+    fun enforceBluetoothPrivilegedAndroidAutoOrThrow(e: BluetoothPermissionException) {
+        val perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO
+        if (context.checkCallingPermission(perm) == PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+        throw e
+    }
+
     @RequiresPermission(BLUETOOTH_CONNECT)
     fun enableAllowed(source: AttributionSource, foregroundRequired: Boolean) =
         userCanToggle(source, "enable", foregroundRequired)
@@ -89,7 +97,13 @@ internal class PermissionChecker(
     fun getAddressAllowed(source: AttributionSource) {
         enforceConnect(source, "getAddress")
         if (source.uid != SYSTEM_UID) enforceCallerIsForegroundUser(source.uid)
-        enforceLocalMacAddress("getAddress")
+        try {
+            enforceLocalMacAddress("getAddress")
+        } catch (e: BluetoothPermissionException) {
+            // wired Android Auto doesn't ask for full LOCAL_MAC_ADDRESS permission but needs
+            // the Bluetooth adapter hardware address for pairing to hands-free audio car system
+            enforceBluetoothPrivilegedAndroidAutoOrThrow(e)
+        }
     }
 
     @RequiresPermission(BLUETOOTH_CONNECT)
@@ -136,7 +150,11 @@ internal class PermissionChecker(
 
         if (foregroundRequired) {
             enforceCallerIsForegroundUser(source.uid)
-            enforceCompatChange(source)
+            try {
+                enforceCompatChange(source)
+            } catch (e: BluetoothPermissionException) {
+                enforceBluetoothPrivilegedAndroidAutoOrThrow(e)
+            }
         }
 
         enforceConnect(source, apiName)
