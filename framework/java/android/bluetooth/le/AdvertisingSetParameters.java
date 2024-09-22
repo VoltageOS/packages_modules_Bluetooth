@@ -19,6 +19,7 @@ package android.bluetooth.le;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.SystemApi;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
@@ -477,6 +478,14 @@ public final class AdvertisingSetParameters implements Parcelable {
                             > AdvertisingSetParameters.ADDRESS_TYPE_RANDOM_NON_RESOLVABLE) {
                 throw new IllegalArgumentException("unknown address type " + ownAddressType);
             }
+
+            if (GmsCompat.isEnabled()) {
+                if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)) {
+                    android.util.Log.d("GmsCompat", "skipped setOwnAddressType(" + ownAddressType + ")", new Throwable());
+                    return this;
+                }
+            }
+
             mOwnAddressType = ownAddressType;
             return this;
         }
