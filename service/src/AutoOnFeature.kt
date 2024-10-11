@@ -103,7 +103,7 @@ public fun notifyBluetoothOn(context: Context) {
     timer = null
 
     if (!isFeatureSupportedForUser(context.contentResolver)) {
-        val defaultFeatureValue = true
+        val defaultFeatureValue = false
         if (!setFeatureEnabledForUserUnchecked(context, defaultFeatureValue)) {
             Log.e(TAG, "Failed to set feature to its default value ${defaultFeatureValue}")
         } else {
