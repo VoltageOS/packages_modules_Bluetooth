@@ -4732,6 +4732,8 @@ public final class BluetoothAdapter {
                     mBluetoothConnectionCallback, mAttributionSource);
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -4785,6 +4787,8 @@ public final class BluetoothAdapter {
                             mBluetoothConnectionCallback, mAttributionSource);
                 } catch (RemoteException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } catch (SecurityException se) {
+                    GmsCompat.catchOrRethrow(se);
                 } finally {
                     mServiceLock.readLock().unlock();
                 }

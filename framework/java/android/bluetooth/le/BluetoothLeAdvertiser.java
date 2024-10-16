@@ -605,7 +605,7 @@ public final class BluetoothLeAdvertiser {
             return;
         } catch (SecurityException e) {
             mCallbackWrappers.remove(callback);
-            throw e;
+            GmsCompat.catchOrRethrow(e);
         }
     }
 
