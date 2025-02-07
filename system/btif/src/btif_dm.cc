@@ -64,6 +64,7 @@
 #include "btif_util.h"
 #include "common/lru_cache.h"
 #include "common/metrics.h"
+#include "common/strings.h"
 #include "device/include/interop.h"
 #include "hci/controller_interface.h"
 #include "hci/le_rand_callback.h"
@@ -76,6 +77,7 @@
 #include "main_thread.h"
 #include "metrics/bluetooth_event.h"
 #include "os/logging/log_adapter.h"
+#include "os/system_properties.h"
 #include "osi/include/properties.h"
 #include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_dev.h"
@@ -247,7 +249,6 @@ static bool btif_dm_inquiry_in_progress = false;
 /*******************************************************************************
  *  Static variables
  ******************************************************************************/
-static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX + 1] = {'\0'};
 static uid_set_t* uid_set = NULL;
 
 /* A circular array to keep track of the most recent bond events */
@@ -1396,7 +1397,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH*
         if (cod != 0) {
           /* Use the existing class of device when the one reported from inquiry
              is unclassified. Inquiry results coming from BLE can have an
-             inferred device class based on the service uuids or appearence. We
+             inferred device class based on the service uuids or appearance. We
              don't want this to replace the existing value below when we call
              btif_storage_add_remote_device */
           uint32_t old_cod = get_cod(&bdaddr);
@@ -1955,13 +1956,13 @@ void BTIF_dm_enable() {
   }
 
   BD_NAME bdname;
-  bt_status_t status;
-  bt_property_t prop;
-  prop.type = BT_PROPERTY_BDNAME;
-  prop.len = BD_NAME_LEN;
-  prop.val = (void*)bdname;
+  bt_property_t prop{
+          .type = BT_PROPERTY_BDNAME,
+          .len = BD_NAME_LEN,
+          .val = (void*)bdname,
+  };
 
-  status = btif_storage_get_adapter_property(&prop);
+  bt_status_t status = btif_storage_get_adapter_property(&prop);
   if (status == BT_STATUS_SUCCESS) {
     /* A name exists in the storage. Make this the device name */
     BTA_DmSetDeviceName((const char*)prop.val);
@@ -3759,7 +3760,39 @@ void btif_dm_on_disable() {
  ******************************************************************************/
 void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 
+static const char* btif_get_default_local_name_new() {
+  using bluetooth::common::StringTrim;
+  static std::string default_name = "";
+
+  if (default_name.empty()) {
+    std::string name = StringTrim(os::GetSystemProperty(PROPERTY_DEFAULT_DEVICE_NAME).value_or(""));
+    if (name.size() > BD_NAME_LEN) {
+      name.resize(BD_NAME_LEN);
+    }
+    default_name = name;
+  }
+
+  if (default_name.empty()) {
+    std::string name = StringTrim(os::GetSystemProperty(PROPERTY_PRODUCT_MODEL).value_or(""));
+    if (name.size() > BD_NAME_LEN) {
+      name.resize(BD_NAME_LEN);
+    }
+    default_name = name;
+  }
+
+  if (default_name.empty()) {
+    default_name = "Android";
+  }
+
+  return default_name.c_str();
+}
+
 static const char* btif_get_default_local_name() {
+  if (com::android::bluetooth::flags::empty_names_are_invalid()) {
+    return btif_get_default_local_name_new();
+  }
+  static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX + 1] = {'\0'};
+
   if (btif_default_local_name[0] == '\0') {
     int max_len = sizeof(btif_default_local_name) - 1;
 

@@ -421,10 +421,11 @@ void btif_get_adapter_property(bt_property_type_t type) {
 
   bt_status_t status = BT_STATUS_SUCCESS;
   char buf[512];
-  bt_property_t prop;
-  prop.type = type;
-  prop.val = (void*)buf;
-  prop.len = sizeof(buf);
+  bt_property_t prop{
+          .type = type,
+          .len = sizeof(buf),
+          .val = (void*)buf,
+  };
   if (prop.type == BT_PROPERTY_LOCAL_LE_FEATURES) {
     tBTM_BLE_VSC_CB cmn_vsc_cb;
     bt_local_le_features_t local_le_features;
