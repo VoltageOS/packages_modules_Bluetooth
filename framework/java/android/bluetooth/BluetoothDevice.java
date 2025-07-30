@@ -2141,8 +2141,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                 return sBluetoothBondCache.query(
                         new Pair<>(service, new Pair<>(mAttributionSource, BluetoothDevice.this)));
             } catch (RuntimeException e) {
-                if (!(e.getCause() instanceof RemoteException)) {
-                    throw e;
+                Throwable cause = e.getCause();
+                if (!(cause instanceof RemoteException)) {
+                    if (cause instanceof SecurityException se) {
+                        GmsCompat.catchOrRethrow(se);
+                    } else {
+                        throw e;
+                    }
                 }
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
