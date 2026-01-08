@@ -176,7 +176,12 @@ class A2dpServiceBinder extends IBluetoothA2dp.Stub implements IProfileServiceBi
             return false;
         }
 
-        service.enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, null);
+        try {
+            service.enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, null);
+        } catch (SecurityException e) {
+            Utils.enforceBluetoothPrivilegedAndroidAutoOrThrow(service, e);
+        }
+
         return service.setConnectionPolicy(device, connectionPolicy);
     }
 
