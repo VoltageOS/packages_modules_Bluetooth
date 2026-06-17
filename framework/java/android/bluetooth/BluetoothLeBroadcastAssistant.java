@@ -33,6 +33,7 @@ import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SystemApi;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
@@ -726,7 +727,12 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         requireNonNull(callback);
         log("registerCallback");
 
-        enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        try {
+            enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return;
+        }
 
         synchronized (mCallbackExecutorMap) {
             // If the callback map is empty, we register the service-to-app callback
@@ -776,7 +782,12 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         requireNonNull(callback);
         log("unregisterCallback");
 
-        enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        try {
+            enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return;
+        }
 
         synchronized (mCallbackExecutorMap) {
             if (mCallbackExecutorMap.remove(callback) == null) {

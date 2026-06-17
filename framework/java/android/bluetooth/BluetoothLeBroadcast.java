@@ -30,6 +30,7 @@ import android.annotation.Nullable;
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SystemApi;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -327,7 +328,12 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         requireNonNull(executor);
         requireNonNull(callback);
         Log.d(TAG, "registerCallback");
-        enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        try {
+            enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return;
+        }
         mCallbackWrapper.registerCallback(getService(), callback, executor);
     }
 
@@ -350,7 +356,12 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     public void unregisterCallback(@NonNull Callback callback) {
         requireNonNull(callback);
         Log.d(TAG, "unregisterCallback");
-        enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        try {
+            enforcePermissionInFramework(mContext, BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED);
+        } catch (SecurityException se) {
+            GmsCompat.catchOrRethrow(se);
+            return;
+        }
         mCallbackWrapper.unregisterCallback(getService(), callback);
     }
 
